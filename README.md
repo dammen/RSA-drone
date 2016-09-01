@@ -9,5 +9,5 @@ Make sure your ROS IP is set to this and ROS_MASTER_URI.
 
 If you put the following in your .bashrc, you (should) never have to worry about it again:
 
-export ROS_IP=`hostname -I | tr -d ' '`
+`export ROS_IP=/`hostname -I | tr -d ' '/``
 export ROS_MASTER_URI=http://${ROS_IP}:11311
