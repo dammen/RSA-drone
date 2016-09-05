@@ -1,0 +1,7 @@
+<!-- Launch the control panel test node -->
+<launch >
+    <node pkg="drone" type="drone_controlPanelTest" name="drone_controlPanelTest" output="screen">
+        <rosparam>
+        </rosparam>
+    </node>
+</launch>
