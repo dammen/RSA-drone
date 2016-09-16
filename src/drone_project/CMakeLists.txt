@@ -75,6 +75,7 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC})
 ## Starter library with all common code
 add_library(drone_library
     src/controlPanelTest.cpp
+    src/bottomBeaconDetector.cpp
     #src/other.cpp
 )
 
@@ -89,7 +90,9 @@ add_library(drone_rviz_library
 add_executable(drone_controlPanelTest
     src/nodes/controlPanelTest_node.cpp
 )
-
+add_executable(drone_bottomBeaconDetector
+    src/nodes/bottomBeaconDetector_node.cpp
+)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(drone_library
@@ -98,6 +101,11 @@ target_link_libraries(drone_library
 )
 target_link_libraries(drone_controlPanelTest
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  drone_library
+)
+target_link_libraries(drone_bottomBeaconDetector
+  ${CATKIN_LIBRARIES}
   ${OpenCV_LIBRARIES}
   drone_library
 )

@@ -1,0 +1,7 @@
+<!-- Launch the bottom camera processing  node -->
+<launch >
+    <node pkg="drone" type="drone_bottomBeaconDetector" name="drone_bottomBeaconDetector" output="screen">
+        <rosparam>
+        </rosparam>
+    </node>
+</launch>
