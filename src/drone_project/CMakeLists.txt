@@ -9,13 +9,13 @@ find_package(catkin REQUIRED COMPONENTS
                     #crosbot_msgs
                     #crosbot
                     ## Uncomment these if required
-                    #cv_bridge
+                    cv_bridge
                     #crosbot_explore
                     )
 
 ## Uncomment if using OpenCV
-## OpenCV
-#find_package(OpenCV)
+##OpenCV
+find_package(OpenCV)
 
 # QT4 required for RViz plugins
 find_package(Qt4 REQUIRED)
