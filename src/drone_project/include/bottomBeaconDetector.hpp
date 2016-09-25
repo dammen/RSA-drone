@@ -12,6 +12,7 @@
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <sstream>
@@ -22,6 +23,8 @@ class BottomBeaconDetector {
 private:
 
     ros::Subscriber bottomCameraSub;
+    ros::Publisher bottomCameraPub;
+    ros::Publisher debugGreyPub;
 
 public:
     BottomBeaconDetector();

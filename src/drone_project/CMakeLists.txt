@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
                     roscpp rviz
                     message_runtime std_msgs sensor_msgs geometry_msgs
                     image_transport
+                    cv_bridge
                     #crosbot_msgs
                     #crosbot
                     ## Uncomment these if required
