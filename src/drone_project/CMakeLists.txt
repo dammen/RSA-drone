@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Uncomment if using OpenCV
 ## OpenCV
-#find_package(OpenCV)
+find_package(OpenCV)
 
 # QT4 required for RViz plugins
 find_package(Qt4 REQUIRED)
@@ -77,13 +77,13 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC})
 add_library(drone_library
     src/controlPanelTest.cpp
     src/bottomBeaconDetector.cpp
+    src/cameraToggle.cpp
     #src/other.cpp
 )
 
 ## GUI Specific Libraries
 add_library(drone_rviz_library
     src/rviz/controlPanel.cpp
-    
     ${QT_MOC_HPP}
 )
 
@@ -93,6 +93,10 @@ add_executable(drone_controlPanelTest
 )
 add_executable(drone_bottomBeaconDetector
     src/nodes/bottomBeaconDetector_node.cpp
+)
+
+add_executable(drone_cameraToggle
+    src/nodes/cameraToggle_node.cpp
 )
 
 ## Specify libraries to link a library or executable target against
@@ -110,6 +114,13 @@ target_link_libraries(drone_bottomBeaconDetector
   ${OpenCV_LIBRARIES}
   drone_library
 )
+
+target_link_libraries(drone_cameraToggle
+    ${CATKIN_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    drone_library
+)
+
 target_link_libraries(drone_rviz_library
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
