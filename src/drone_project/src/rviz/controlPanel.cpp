@@ -189,6 +189,14 @@ void ControlsWidget::slot_btn_mode() {
         std_msgs::String msg;
         msg.data = "mode_toggle";
         commandPub.publish(msg);
+
+        char* currentLabel = modeBtn->text().toLatin1().data();
+
+        if(strcmp(currentLabel, "Beacon Track") == 0){
+            modeBtn->setText("Waypoints");
+	} else {
+            modeBtn->setText("Beacon Track");
+        }
     }
 }
 
