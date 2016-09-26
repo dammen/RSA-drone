@@ -56,6 +56,8 @@ public Q_SLOTS:
     void slot_btn_reset();
     void slot_btn_start();
     void slot_btn_stop();
+    void slot_btn_mode();
+    void slot_btn_cam();
 
 Q_SIGNALS:
     //void signal_update_data();
@@ -81,6 +83,8 @@ private:
     QPushButton *resetBtn;
     QPushButton *startBtn;
     QPushButton *stopBtn;
+    QPushButton *modeBtn;
+    QPushButton *cameraBtn;
 };
 
 class ControlsRVizDisplay : public rviz::Display {

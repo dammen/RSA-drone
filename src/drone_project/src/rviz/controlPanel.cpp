@@ -43,31 +43,6 @@
 
 namespace drone {
 
-/*
-class _RVIZCommandCallback : public crosbot::CrosbotCommandCallback {
-private:
-    ControlsWidget *widget;
-
-public:
-    _RVIZCommandCallback(ControlsWidget *widget) : widget(widget) {};
-    virtual ~_RVIZCommandCallback() {};
-    virtual void callback_receivedCommand(const crosbot_msgs::ControlCommandPtr command) {
-        if (widget != NULL) widget->callback_receivedCommand(command);
-    };
-};
-
-class _RVIZStatusCallback : public crosbot::CrosbotStatusCallback {
-private:
-    ControlsWidget *widget;
-
-public:
-    _RVIZStatusCallback(ControlsWidget *widget) : widget(widget) {};
-    virtual ~_RVIZStatusCallback() {};
-    virtual void callback_receivedStatus(const crosbot_msgs::ControlStatusPtr status) {
-        if (widget != NULL) widget->callback_receivedStatus(status);
-    };
-};
-*/
 ControlsWidget::ControlsWidget(rviz::Property* propertyParent) :
     QWidget(),
     operating(false),
@@ -82,6 +57,8 @@ ControlsWidget::ControlsWidget(rviz::Property* propertyParent) :
     ADD_BUTTON(startBtn, "Take Off", buttonLayout, 0, 0, slot_btn_start);
     ADD_BUTTON(stopBtn, "Land", buttonLayout, 0, 1, slot_btn_stop);
     ADD_BUTTON(resetBtn, "Emergency Stop", buttonLayout, 1, 0, slot_btn_reset);
+    ADD_BUTTON(modeBtn, "Beacon Track", buttonLayout, 1, 1, slot_btn_mode);
+    ADD_BUTTON(cameraBtn, "Toggle Camera", buttonLayout, 2, 0, slot_btn_cam);
     controlsGB->setLayout(buttonLayout);
 
     // Configure Labels
@@ -203,6 +180,24 @@ void ControlsWidget::slot_btn_stop() {
 	msg.data = "land";
 	commandPub.publish(msg);
 	//crosbotCommand->sendCommandAll(crosbot_msgs::ControlCommand::CMD_STOP);
+    }
+}
+
+void ControlsWidget::slot_btn_mode() {
+    if (operating) {
+        ROS_INFO("%s toggle mode", LOG_START);
+        std_msgs::String msg;
+        msg.data = "mode_toggle";
+        commandPub.publish(msg);
+    }
+}
+
+void ControlsWidget::slot_btn_cam() {
+    if (operating) {
+        ROS_INFO("%s toggle camera", LOG_START);
+        std_msgs::String msg;
+        msg.data = "camera_toggle";
+        commandPub.publish(msg);
     }
 }
 
