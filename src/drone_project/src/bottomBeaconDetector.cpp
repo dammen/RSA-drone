@@ -8,9 +8,8 @@
 #include <ros/ros.h>
 
 #include <bottomBeaconDetector.hpp>
-#include <std_msgs/Float32.h>
-#include <std_msgs/MultiArrayLayout.h>
-#include <std_msgs/String.h>
+#include <vector>
+#include <drone/beaconGeometry.h>
 
 
 namespace drone {
@@ -23,15 +22,15 @@ void BottomBeaconDetector::configure() {}
 void BottomBeaconDetector::startup() {
     
     bottomCameraSub = nh.subscribe<sensor_msgs::Image>(
-        "/ardrone/bottom_raw",
+        "/ardrone/bottom/image_raw",
         1,
         &BottomBeaconDetector::callbackControl,
          this
     );
     
     // Make custom message type later
-    anglePub = nh.advertise<std_msgs::Float32>("/ardrone/beaconAngleRelative", 1);
-    locationPub = nh.advertise<std_msgs::Int32MultiArrayLayout>("/ardrone/beaconLocation", 1);
+    beaconPub = nh.advertise<drone::beaconGeometry>("/ardrone/beaconGeometry", 1);
+
     
     cv::namedWindow(OPENCV_WINDOW);
 }
@@ -52,14 +51,20 @@ void BottomBeaconDetector::callbackControl(const sensor_msgs::ImageConstPtr& fra
         return;
     }
     
-    analysePicture(cv_ptr);
+    analyseImage(cv_ptr);
     
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
-    image_pub_.publish(cv_ptr->toImageMsg());
+    //image_pub_.publish(cv_ptr->toImageMsg());
 }
 
 void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat bgr_image = cv_ptr->image;
+    drone::beaconGeometry msg;
+    
+    // Display unfiltered image
+    cv::namedWindow("Normal Image", cv::WINDOW_AUTOSIZE);
+    cv::imshow("Normal Image", bgr_image);
+    
     cv::medianBlur(bgr_image, bgr_image, 3);
 
 	// Convert input image to HSV
@@ -74,19 +79,47 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 	
 	// Find appropriate threshold in testing
 	if (cv::countNonZero(blackFilterRange) < 200) {
+	    msg.canSeeBeacon = false;
+	    msg.positionX = -1;
+	    msg.positionY = -1;
+	    msg.angle = -1;
+	    beaconPub.publish(msg);
         return;
     }
     
     ROS_INFO("Beacon Detected");
     
-    vector<Vec2f> lines;
-    vector<Vec3f> circles;
+
+    msg.canSeeBeacon = true;
+    
+    std::vector<Vec2f> lines;
+    std::vector<Vec3f> circles;
     
     HoughLines(blackFilterRange, lines, 1, CV_PI/180, 100, 0, 0);
     HoughCircles(blueFilterRange, circles, CV_HOUGH_GRADIENT, 1, blueFilterRange.rows/8, 200, 100, 0, 0);
+
     
-    anglePub.publish(lines[0][1]);
-    locationPub.publish([circles[0][0], circles[0][1]]);
+    if (!circles.empty()) {
+        ROS_INFO("Beacon Location: X:%d Y:%d", (int)circles[0][0], (int)circles[0][1]);
+        msg.positionX = (int)circles[0][0];
+        msg.positionY = (int)circles[0][1];
+    }
+    if (!lines.empty()) {
+        ROS_INFO("Beacon Angle: %f", lines[0][1]);
+        msg.angle = lines[0][1];
+    }
+
+    // Display filtered Images
+    cv::namedWindow("Blue Filter", cv::WINDOW_AUTOSIZE);
+    cv::imshow("Blue Filter", blueFilterRange);
+
+    cv::namedWindow("Black Filter", cv::WINDOW_AUTOSIZE);
+    cv::imshow("Black Filter", blackFilterRange);
+    
+    beaconPub.publish(msg);
+
+    //anglePub.publish(lines[0][1]);
+    //locationPub.publish([circles[0][0], circles[0][1]]);
     
 }
 
