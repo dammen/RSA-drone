@@ -56,26 +56,65 @@ void BottomBeaconDetector::callbackControl(const sensor_msgs::ImageConstPtr& fra
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     //image_pub_.publish(cv_ptr->toImageMsg());
 }
+/*
+void BottomBeaconDetector::trackBarblack(int, void*) {
+    
+    int h1 = 100;
+    int s1 = 100;
+    int v1 = 100;
+    int h = 100;
+    int s = 100;
+    int v = 100;
+    h1 = getTrackbarPos("h1", "Black Filter");
+    s1 = getTrackbarPos("s1", "Black Filter");
+    v1 = getTrackbarPos("v1", "Black Filter");
+    h = getTrackbarPos("h", "Black Filter");
+    s = getTrackbarPos("s", "Black Filter");
+    v = getTrackbarPos("v", "Black Filter");
+    cv::inRange(hsv_image, cv::Scalar(h, s, v), cv::Scalar(h1, s1, v1), blackFilterRange);
+    imshow("Black Filter", blackFilterRange);
+}
 
+void BottomBeaconDetector::trackBarblue(int, void*) {
+    int h1 = 100;
+    int s1 = 100;
+    int v1 = 100;
+    int h = 100;
+    int s = 100;
+    int v = 100;
+    
+    h = getTrackbarPos("h", "Blue Filter");
+    s = getTrackbarPos("s", "Blue Filter");
+    v = getTrackbarPos("v", "Blue Filter");
+    h1 = getTrackbarPos("h1", "Blue Filter");
+    s1 = getTrackbarPos("s1", "Blue Filter");
+    v1 = getTrackbarPos("v1", "Blue Filter");
+    
+    cv::inRange(hsv_image, cv::Scalar(h, s, v), cv::Scalar(h1, s1, v1), blueFilterRange);
+    cv::imshow("Blue Filter", blueFilterRange);
+}
+*/
 void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat bgr_image = cv_ptr->image;
     drone::beaconGeometry msg;
     
+    if (!bgr_image.data) { printf("ERROR READING IMAGE"); return; }
+    
     // Display unfiltered image
     cv::namedWindow("Normal Image", cv::WINDOW_AUTOSIZE);
     cv::imshow("Normal Image", bgr_image);
-    
+   
     cv::medianBlur(bgr_image, bgr_image, 3);
 
 	// Convert input image to HSV
 	cv::Mat hsv_image;
-	cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
-	
-	// Have to find better values
 	cv::Mat blackFilterRange;
-	cv::Mat blueFilterRange;
-	cv::inRange(hsv_image, cv::Scalar(0, 0, 0, 0), cv::Scalar(180, 255, 30, 0), blackFilterRange);
-	cv::inRange(hsv_image, cv::Scalar(120, 255, 255), cv::Scalar(120, 255, 255), blueFilterRange);
+    cv::Mat blueFilterRange;
+    
+	cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
+
+	cv::inRange(hsv_image, cv::Scalar(0, 0, 0), cv::Scalar(180, 255, 3), blackFilterRange);
+	cv::inRange(hsv_image, cv::Scalar(100, 0, 110), cv::Scalar(115, 255, 255), blueFilterRange);
 	
 	// Find appropriate threshold in testing
 	if (cv::countNonZero(blackFilterRange) < 200) {
@@ -94,19 +133,44 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     
     std::vector<Vec2f> lines;
     std::vector<Vec3f> circles;
-    
-    HoughLines(blackFilterRange, lines, 1, CV_PI/180, 100, 0, 0);
-    HoughCircles(blueFilterRange, circles, CV_HOUGH_GRADIENT, 1, blueFilterRange.rows/8, 200, 100, 0, 0);
 
+    GaussianBlur(blueFilterRange, blueFilterRange, Size(9,9), 2, 2);
+    HoughCircles(blueFilterRange, circles, CV_HOUGH_GRADIENT, 2, blueFilterRange.rows/4, 100, 50);
+    
+    Canny(blackFilterRange, blackFilterRange, 50, 200);
+    HoughLines(blackFilterRange, lines, 1, CV_PI/180, 30);
     
     if (!circles.empty()) {
-        ROS_INFO("Beacon Location: X:%d Y:%d", (int)circles[0][0], (int)circles[0][1]);
+        ROS_INFO("Beacon Location: X:%d Y:%d, Radius: %d", (int)circles[0][0], (int)circles[0][1], (int)circles[0][2]);
+        
         msg.positionX = (int)circles[0][0];
         msg.positionY = (int)circles[0][1];
+        
+        //Drawing Circles
+        Point center(cvRound(circles[0][0]), cvRound(circles[0][1]));
+        int radius = cvRound(circles[0][2]);
+        circle(bgr_image, center, radius, Scalar(0,255,0), -3, 8, 0);
+        //circle(blueFilterRange, center, radius, Scalar(0,255,0), -3, 8, 0);     // DUMBASS THESE 2 ARE HSV NOT BGR
+        //circle(blackFilterRange, center, radius, Scalar(0,255,0), -3, 8, 0);
     }
+    
     if (!lines.empty()) {
-        ROS_INFO("Beacon Angle: %f", lines[0][1]);
-        msg.angle = lines[0][1];
+        const int medianLine = lines.size() - 1;
+        ROS_INFO("Beacon Angle: %f, %d", lines[medianLine][1], (int)lines.size());
+        msg.angle = lines[medianLine][1] + 90; // offset
+        
+        // Drawing Line
+        float rho = lines[medianLine][0], theta = lines[medianLine][1];
+        Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        
+        pt1.x = cvRound(x0 + 1000*(-b));
+        pt1.y = cvRound(y0 + 1000*(a));
+        pt2.x = cvRound(x0 - 1000*(-b));
+        pt2.y = cvRound(y0 - 1000*(a));
+        
+        line( bgr_image, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
     }
 
     // Display filtered Images
@@ -116,11 +180,25 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::namedWindow("Black Filter", cv::WINDOW_AUTOSIZE);
     cv::imshow("Black Filter", blackFilterRange);
     
-    beaconPub.publish(msg);
+    cv::imshow("Normal Image", bgr_image);
 
-    //anglePub.publish(lines[0][1]);
-    //locationPub.publish([circles[0][0], circles[0][1]]);
+    /*
+    createTrackbar("h", "Black Filter", 0, 179, trackBarblack);
+    createTrackbar("s", "Black Filter", 0, 255,trackBarblack);
+    createTrackbar("v", "Black Filter", 0, 255,trackBarblack);
+    createTrackbar("h1", "Black Filter", 0, 179, trackBarblack);
+    createTrackbar("s1", "Black Filter", 0, 255,trackBarblack);
+    createTrackbar("v1", "Black Filter", 0, 255,trackBarblack);
     
+    createTrackbar("h", "Blue Filter", 0, 179,trackBarblue);
+    createTrackbar("s", "Blue Filter", 0, 255, trackBarblue);
+    createTrackbar("v", "Blue Filter", 0, 255, trackBarblue);
+    createTrackbar("h1", "Blue Filter", 0, 179,trackBarblue);
+    createTrackbar("s1", "Blue Filter", 0, 255, trackBarblue);
+    createTrackbar("v1", "Blue Filter", 0, 255, trackBarblue);
+    */
+    
+    beaconPub.publish(msg);
 }
 
 } // namespace drone

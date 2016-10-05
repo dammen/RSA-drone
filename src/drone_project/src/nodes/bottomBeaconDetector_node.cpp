@@ -5,37 +5,30 @@
  */
 
 #include <ros/ros.h>
-
 #include <bottomBeaconDetector.hpp>
-
-#include <cstdio>
-#include <cstdlib>
 
 #define LOG_START    "BottomBeaconDetector_node ::"
 
 namespace drone {
 
 int main_bottomBeaconDetector(int argc, char** argv) {
+
     ros::init(argc, argv, "drone_bottomBeaconDetector");
 
     // Node Handle - Use '~' when loading config parameters
     // Use without '~' when publish/subscribe/service
     ros::NodeHandle nh("~");
-
+    
     BottomBeaconDetector bbd;
-    bbd.configure();
     bbd.startup();
-
+    bbd.configure();
     while (ros::ok()) {
         ROS_INFO("%s Spinning", LOG_START);
-
         ros::spin();
     }
 
     // Disconnect
     bbd.shutdown();
-
-    return 0;
 }
 
 } // namespace comp3431

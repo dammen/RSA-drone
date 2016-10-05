@@ -28,8 +28,9 @@ private:
     image_transport::ImageTransport it_;            // Made for networking with images, see wiki.ros.org/image_transport
     ros::Subscriber bottomCameraSub;
     ros::Publisher beaconPub;
-    
-
+    //Mat hsv_image;
+    //void trackBarblue (int, void*);
+    //void trackBarblack(int, void*);
 
 public:
     BottomBeaconDetector();
