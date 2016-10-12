@@ -5,11 +5,14 @@
  */
 
 #include <ros/ros.h>
+
 #include <bottomBeaconDetector.hpp>
 
 #define LOG_START    "BottomBeaconDetector_node ::"
 
 namespace drone {
+using namespace cv;
+using namespace std;
 
 int main_bottomBeaconDetector(int argc, char** argv) {
 
@@ -17,11 +20,13 @@ int main_bottomBeaconDetector(int argc, char** argv) {
 
     // Node Handle - Use '~' when loading config parameters
     // Use without '~' when publish/subscribe/service
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh();
     
     BottomBeaconDetector bbd;
+ 
     bbd.startup();
     bbd.configure();
+    
     while (ros::ok()) {
         ROS_INFO("%s Spinning", LOG_START);
         ros::spin();
