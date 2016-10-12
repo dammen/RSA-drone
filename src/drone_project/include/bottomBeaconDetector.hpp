@@ -26,6 +26,7 @@ class BottomBeaconDetector {
 private:
     ros::NodeHandle nh;
     image_transport::ImageTransport it_;            // Made for networking with images, see wiki.ros.org/image_transport
+    image_transport::Publisher imagePublisher;
     ros::Subscriber bottomCameraSub;
     ros::Publisher beaconPub;
     //void trackBarblue (int, void*);

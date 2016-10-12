@@ -15,7 +15,13 @@
 namespace drone {
 using namespace cv;
 
-BottomBeaconDetector::BottomBeaconDetector() : it_(nh) {}
+BottomBeaconDetector::BottomBeaconDetector() : it_(nh) {
+    /*
+    cv::namedWindow("Normal Image", cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("Black Filter", cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("Blue Filter", cv::WINDOW_AUTOSIZE);
+    */
+}
 
 void BottomBeaconDetector::configure() {}
 
@@ -30,9 +36,8 @@ void BottomBeaconDetector::startup() {
     
     // Make custom message type later
     beaconPub = nh.advertise<drone::beaconGeometry>("/ardrone/beaconGeometry", 1);
-
+    imagePublisher = it_.advertise("/ardrone/ModifiedImage", 1);
     
-    cv::namedWindow(OPENCV_WINDOW);
 }
 
 void BottomBeaconDetector::shutdown() {
@@ -52,9 +57,6 @@ void BottomBeaconDetector::callbackControl(const sensor_msgs::ImageConstPtr& fra
     }
     
     analyseImage(cv_ptr);
-    
-    cv::imshow(OPENCV_WINDOW, cv_ptr->image);
-    //image_pub_.publish(cv_ptr->toImageMsg());
 }
 /*
 void BottomBeaconDetector::trackBarblack(int, void*) {
@@ -116,6 +118,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 	    msg.positionY = -1;
 	    msg.angle = -1;
 	    beaconPub.publish(msg);
+        imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
         return;
     }
     
@@ -147,7 +150,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     if (!linesP.empty()) {
         Vec4i max_l;
         double max_dist = 100;
-
+        // Get first line under 100 pixels, avoiding large lines found in environment
         for( size_t i = 0; i < linesP.size(); i++ )
         {
             Vec4i l = linesP[i];
@@ -174,18 +177,16 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         line( bgr_image, Point(max_l[0], max_l[1]), Point(max_l[2], max_l[3]), Scalar(255,0,0), 3, CV_AA);
         
         float angle = atan2(max_l[1] - max_l[3], max_l[0] - max_l[2]);   
-        ROS_INFO("Beacon Angle: %f, %d", angle + 90, (int)linesP.size());
+        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle + 90, (int)linesP.size());
         msg.angle = angle + 90; // offset
     }
 
     // Display filtered Images
-
-    cv::imshow("Blue Filter", blueFilterRange);
-
-    cv::imshow("Black Filter", blackFilterRange);
-    
-    cv::imshow("Normal Image", bgr_image);
     /*
+    cv::imshow("Blue Filter", blueFilterRange);
+    cv::imshow("Black Filter", blackFilterRange);
+    cv::imshow("Normal Image", bgr_image);
+    
     createTrackbar("h", "Black Filter", 0, 179, trackBarblack);
     createTrackbar("s", "Black Filter", 0, 255,trackBarblack);
     createTrackbar("v", "Black Filter", 0, 255,trackBarblack);
@@ -202,6 +203,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     waitKey(2);
     */
     beaconPub.publish(msg);
+    imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
 }
 
 } // namespace drone
