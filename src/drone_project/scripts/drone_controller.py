@@ -81,10 +81,10 @@ class DroneController:
     def moveDown(self, val):
         self.setCommand(0, 0, -val)
 
-    def goForward(self, val):
+    def moveForward(self, val):
         self.setCommand(val)
 
-    def goBackward(self, val):
+    def moveBackward(self, val):
         self.setCommand(-val)
 
     def rotateClockwise(self, val):
