@@ -13,7 +13,7 @@ file = cv2.VideoCapture(args.video) if args.video else cv2.imread(args.image)
 counter = 0
 
 # pattern detector (detective)
-sherlock = holmes.SherlockHolmes()
+sherlock = holmes.SherlockHolmes(draw=True)
 
 # every x frames, try and detect a pattern
 INTERVAL = 10
@@ -21,7 +21,10 @@ INTERVAL = 10
 while True:
     # capture a frame from the video
     if args.video:
-        sherlock.image = file.read()[1]
+        ret, sherlock.image = file.read()
+        if not ret:
+            print('Video complete')
+            break
     elif args.image:
         sherlock.image = file
     

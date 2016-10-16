@@ -16,12 +16,13 @@ import math
 
 class SherlockHolmes(object):
     # constants
-    BLUR_AMOUNT = 17 # amount to blur each frame by
+    BLUR_AMOUNT = 21 # amount to blur each frame by
     PARAM_1 = 50 # parameter for circle detection (idk what it does lol)
-    PARAM_2 = 48 # parameter for circle detection (the higher it is, the less
+    PARAM_2 = 38 # parameter for circle detection (the higher it is, the less
                  # circles detected)
     CIRCLE_COLOUR = (0, 255, 0) # colour for circles to be drawn
     CIRCLE_WIDTH = 2 # width of circles drawn
+    CENTER_RADIUS = 3 # radius of center circle for colour checking
 
     # colours
     MAGENTA_LOWER = np.array(hsv.MAGENTA_LOWER)
@@ -29,8 +30,9 @@ class SherlockHolmes(object):
     LIME_LOWER = np.array(hsv.LIME_LOWER)
     LIME_UPPER = np.array(hsv.LIME_UPPER)
 
-    def __init__(self):
+    def __init__(self, draw=False):
         self.image = None
+        self.draw = draw
 
     def detect_pattern(self):
         if self.image is None: return
@@ -49,6 +51,11 @@ class SherlockHolmes(object):
             largest_circle = sorted(circles[0, :], key=lambda c: c[2])[-1]
             # crop out that circle
             pattern = self.__crop_circle(self.image, largest_circle[0], largest_circle[1], largest_circle[2])
+            # draw it for debugging
+            for c in circles[0, :]:
+                cv2.circle(self.image, (c[0], c[1]), c[2], (0, 255, 0), 2)
+            if self.draw:
+                cv2.circle(self.image, (largest_circle[0], largest_circle[1]), largest_circle[2], (255, 0, 255), 2)
             # identify the pattern and return
             return self.__identify_pattern(pattern)
         else:
@@ -103,19 +110,22 @@ class SherlockHolmes(object):
             center_y = int(moments['m01'] / moments['m00'])
 
             # find the colour from the center of the circle
-            center = self.__crop_circle(pattern, center_x, center_y, 7)
+            center = self.__crop_circle(pattern, center_x, center_y, self.CENTER_RADIUS)
             if self.__is_green(center):
                 circles.append(pc.PatternCircle(center_x, center_y, patterns.GREEN))
-                # cv2.putText(self.image, 'green', (center_x, center_y),
-                #     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                if self.draw:
+                    cv2.putText(self.image, 'green', (center_x, center_y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             elif self.__is_magenta(center):
                 circles.append(pc.PatternCircle(center_x, center_y, patterns.PINK))
-                # cv2.putText(self.image, 'pink', (center_x, center_y),
-                #     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                if self.draw:
+                    cv2.putText(self.image, 'pink', (center_x, center_y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        # draw
-        # cv2.drawContours(pattern, [c], -1, (0, 255, 0), 2)
-        # cv2.circle(pattern, (center_x, center_y), 7, (255, 255, 255), -1)
+            # draw
+            if self.draw:
+                cv2.drawContours(self.image, [c], -1, (255, 0, 0), 2)
+                cv2.circle(self.image, (center_x, center_y), 7, (255, 255, 255), -1)
         return circles
 
     # orient the circles so that they are row-wise
@@ -143,7 +153,9 @@ class SherlockHolmes(object):
         if line and len(circles) is 4:
             c1, c2 = line # c1 and c2 are the min distance line
             c3, c4 = filter(lambda c: c is not c1 and c is not c2, circles)
-            # cv2.line(global_frame, (c1.x, c1.y), (c2.x, c2.y), (0, 255, 0), 2)
+            
+            if self.draw:
+                cv2.line(self.image, (c1.x, c1.y), (c2.x, c2.y), (0, 255, 0), 2)
 
             # find the angle the minimum line makes with the x-axis
             angle = math_util.line_angle((c1.x, c1.y), (c2.x, c2.y))

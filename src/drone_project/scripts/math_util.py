@@ -17,5 +17,7 @@ def line_angle(a, b):
     if x1 > x2:
         x1, x2 = x2, x1
         y1, y2 = y2, y1
+    if x1 == x2:
+        return 90
     gradient = float(y2 - y1) / (x2 - x1)
     return math.atan(gradient)
