@@ -99,6 +99,8 @@ void BottomBeaconDetector::trackBarblue(int, void*) {
 void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat bgr_image = cv_ptr->image;
     cv::Mat hsv_image;
+    cv::Mat mask;
+    //cv::Mat helperMask;
     cv::Mat blueFilterRange;
     cv::Mat blackFilterRange;
     drone::beaconGeometry msg;
@@ -108,7 +110,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 	// Convert input image to HSV   
 	cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
 	
-	cv::inRange(hsv_image, cv::Scalar(105, 84, 70), cv::Scalar(180, 130, 139), blackFilterRange);
+	cv::inRange(hsv_image, cv::Scalar(0, 65, 100), cv::Scalar(180, 255, 255), blackFilterRange);
 	cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
 	
 	// Find appropriate threshold in testing
@@ -132,9 +134,6 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     GaussianBlur(blueFilterRange, blueFilterRange, Size(9,9), 2, 2);
     HoughCircles(blueFilterRange, circles, CV_HOUGH_GRADIENT, 2, blueFilterRange.rows/4, 100, 50);
     
-    Canny(blackFilterRange, blackFilterRange, 50, 200);
-    HoughLinesP(blackFilterRange, linesP, 1, CV_PI/90, 20, 30, 10);
-    
     if (!circles.empty()) {
         ROS_INFO("Beacon Location: X:%d Y:%d, Radius: %d", (int)circles[0][0], (int)circles[0][1], (int)circles[0][2]);
         
@@ -145,11 +144,31 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         Point center(cvRound(circles[0][0]), cvRound(circles[0][1]));
         int radius = cvRound(circles[0][2]);
         circle(bgr_image, center, radius, Scalar(0,255,0), -3, 8, 0);
+        
+        // set mask for lines
+        mask = Mat::zeros(hsv_image.size(), hsv_image.type());
+        Point topLeft (circles[0][0] - 110, circles[0][1] - 110);
+        Point bottomRight (circles [0][0] + 110, circles[0][1] + 110);
+        
+        if (topLeft.x < 0) topLeft.x = 0;
+        if (topLeft.y < 0) topLeft.y = 0;
+        if (bottomRight.x > hsv_image.cols) bottomRight.x = hsv_image.cols - 1;
+        if (bottomRight.y > hsv_image.rows) bottomRight.y = hsv_image.rows - 1;
+        
+        cv::rectangle(mask, topLeft, bottomRight, Scalar(255, 255, 255), -1, 8, 0);
+        
+        hsv_image.copyTo(blackFilterRange, mask);
     }
+    
+	//cv::inRange(helperMask, cv::Scalar(101, 30, 100), cv::Scalar(180, 45, 160), blackFilterRange);
+	cv::inRange(blackFilterRange, cv::Scalar(0, 50, 25), cv::Scalar(180, 255, 125), blackFilterRange);
+    Canny(blackFilterRange, blackFilterRange, 50, 200);
+    HoughLinesP(blackFilterRange, linesP, 1, CV_PI/180, 30, 20, 5);
     
     if (!linesP.empty()) {
         Vec4i max_l;
-        double max_dist = 100;
+        bool vecSet = false;
+        double max_dist = 50;
         // Get first line under 100 pixels, avoiding large lines found in environment
         for( size_t i = 0; i < linesP.size(); i++ )
         {
@@ -160,12 +179,35 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
             theta2 = (l[2]-l[0]);
             hyp = hypot(theta1,theta2);
 
-            if (max_dist >  hyp) {
+            if (max_dist <  hyp) {
                 max_l = l;
+                vecSet = true;
                 max_dist = hyp;
                 break;
             }           
         }
+        
+        if (!vecSet) {
+            max_dist = 40;
+            // Get first line under 100 pixels, avoiding large lines found in environment
+            for( size_t i = 0; i < linesP.size(); i++ )
+            {
+                Vec4i l = linesP[i];
+                double theta1,theta2, hyp, result;
+
+                theta1 = (l[3]-l[1]);
+                theta2 = (l[2]-l[0]);
+                hyp = hypot(theta1,theta2);
+
+                if (max_dist <  hyp) {
+                    max_l = l;
+                    vecSet = true;
+                    max_dist = hyp;
+                    break;
+                }           
+            }
+        }
+        if (!vecSet) max_l = linesP[0];
         /*
         Draw all matching lines
         for( size_t i = 0; i < linesP.size(); i++ )
@@ -200,8 +242,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     createTrackbar("h1", "Blue Filter", 0, 179,trackBarblue);
     createTrackbar("s1", "Blue Filter", 0, 255, trackBarblue);
     createTrackbar("v1", "Blue Filter", 0, 255, trackBarblue);
-    waitKey(2);
     */
+    
     beaconPub.publish(msg);
     imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
 }

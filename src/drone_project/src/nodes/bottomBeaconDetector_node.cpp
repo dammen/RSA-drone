@@ -22,6 +22,7 @@ int main_bottomBeaconDetector(int argc, char** argv) {
     // Use without '~' when publish/subscribe/service
     ros::NodeHandle nh();
     
+    
     BottomBeaconDetector bbd;
  
     bbd.startup();
@@ -34,6 +35,8 @@ int main_bottomBeaconDetector(int argc, char** argv) {
 
     // Disconnect
     bbd.shutdown();
+    
+    return 0;
 }
 
 } // namespace comp3431
