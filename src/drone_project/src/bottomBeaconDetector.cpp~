@@ -12,7 +12,7 @@
 #include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/String.h>
 
-
+/*
 namespace drone {
 using namespace cv;
 
@@ -91,6 +91,9 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 }
 
 } // namespace drone
+
+*/
+
 
 
 
