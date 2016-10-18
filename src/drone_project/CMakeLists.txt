@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
                     roscpp rviz
                     message_runtime std_msgs sensor_msgs geometry_msgs
                     image_transport
+                    message_generation
                     #crosbot_msgs
                     #crosbot
                     ## Uncomment these if required
@@ -25,9 +26,10 @@ find_package(Qt4 REQUIRED)
 #######################################
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-#  FILES
-#)
+add_message_files(
+  FILES
+  beaconGeometry.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -35,9 +37,10 @@ find_package(Qt4 REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#  DEPENDENCIES
-#)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -52,6 +55,7 @@ catkin_package(
 #   LIBRARIES
 #   CATKIN_DEPENDS
 #  DEPENDS system_lib
+    CATKIN_DEPENDS message_runtime
 )
 
 ###########

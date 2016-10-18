@@ -18,22 +18,24 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sstream>
 
+static const std::string OPENCV_WINDOW = "Image window";
+
 namespace drone {
 
 class BottomBeaconDetector {
 private:
     ros::NodeHandle nh;
     image_transport::ImageTransport it_;            // Made for networking with images, see wiki.ros.org/image_transport
+    image_transport::Publisher imagePublisher;
     ros::Subscriber bottomCameraSub;
-    ros::Publisher anglePub;
-    ros::Publisher locationPub;
-    
-    void analyseImage(cv_bridge::CvImagePtr cv_ptr);
+    ros::Publisher beaconPub;
+    //void trackBarblue (int, void*);
+    //void trackBarblack(int, void*);
 
 public:
     BottomBeaconDetector();
     virtual ~BottomBeaconDetector() {};
-
+    void analyseImage(cv_bridge::CvImagePtr cv_ptr);
     void configure();
     void startup();
     void shutdown();
