@@ -8,15 +8,13 @@
 #include <ros/ros.h>
 
 #include <bottomBeaconDetector.hpp>
-#include <std_msgs/Float32.h>
-#include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/String.h>
 
 
 namespace drone {
 using namespace cv;
 
-BottomBeaconDetector::BottomBeaconDetector() : it_(nh) {}
+BottomBeaconDetector::BottomBeaconDetector() {}
 
 void BottomBeaconDetector::configure() {}
 
@@ -30,18 +28,18 @@ void BottomBeaconDetector::startup() {
     );
     
     // Make custom message type later
-    anglePub = nh.advertise<std_msgs::Float32>("/ardrone/beaconAngleRelative", 1);
-    locationPub = nh.advertise<std_msgs::Int32MultiArrayLayout>("/ardrone/beaconLocation", 1);
+    //anglePub = nh.advertise<std_msgs::Float32>("/ardrone/beaconAngleRelative", 1);
+    //locationPub = nh.advertise<std_msgs::Int32MultiArrayLayout>("/ardrone/beaconLocation", 1);
     
-    cv::namedWindow(OPENCV_WINDOW);
+    //cv::namedWindow(OPENCV_WINDOW);
 }
 
 void BottomBeaconDetector::shutdown() {
-     cv::destroyWindow(OPENCV_WINDOW);
+    // cv::destroyWindow(OPENCV_WINDOW);
 }
 
 void BottomBeaconDetector::callbackControl(const sensor_msgs::ImageConstPtr& frame) {
-    ROS_INFO("BottomBeaconDetector::callbackControl - Image received");
+    /*ROS_INFO("BottomBeaconDetector::callbackControl - Image received");
     cv_bridge::CvImagePtr cv_ptr;
     
     try {
@@ -52,13 +50,15 @@ void BottomBeaconDetector::callbackControl(const sensor_msgs::ImageConstPtr& fra
         return;
     }
     
-    analysePicture(cv_ptr);
+    //analysePicture(cv_ptr);
     
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     image_pub_.publish(cv_ptr->toImageMsg());
+*/
 }
 
 void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
+/*
     cv::Mat bgr_image = cv_ptr->image;
     cv::medianBlur(bgr_image, bgr_image, 3);
 
@@ -87,7 +87,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     
     anglePub.publish(lines[0][1]);
     locationPub.publish([circles[0][0], circles[0][1]]);
-    
+    */
 }
 
 } // namespace drone

@@ -23,7 +23,7 @@ namespace drone {
 class BottomBeaconDetector {
 private:
     ros::NodeHandle nh;
-    image_transport::ImageTransport it_;            // Made for networking with images, see wiki.ros.org/image_transport
+//    image_transport::ImageTransport it_;            // Made for networking with images, see wiki.ros.org/image_transport
     ros::Subscriber bottomCameraSub;
     ros::Publisher anglePub;
     ros::Publisher locationPub;
