@@ -12,6 +12,7 @@
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Empty.h>
 #include <sstream>
 
 namespace drone {
@@ -20,6 +21,9 @@ class ControlPanelTest {
 private:
 
     ros::Subscriber commandSub;
+    ros::Publisher takeoffPub;
+    ros::Publisher landPub;
+    ros::Publisher resetPub;
 
 public:
     ControlPanelTest();
