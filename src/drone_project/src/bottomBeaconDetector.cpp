@@ -273,8 +273,11 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         else if ( angle < 0 && p1.x > 0 && p1.y > 0) {
             ROS_INFO("QUAD 1");
             angle *= -1;
+            angle += 360;
         }
         //ROS_INFO("P1 (%d,%d) P2(%d,%d), SET: %d", max_l[0], max_l[1], max_l[2], max_l[3], set);
+        
+        angle -= 90; // off set
         
         ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
         msg.angle = angle; 
