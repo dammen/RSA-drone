@@ -64,11 +64,11 @@ class KeyboardController(DroneVideoDisplay):
 				elif key == KeyMapping.DecreaseAltitude:
 					self.z_velocity += -2
 
-			print("key press")
-			print("roll:" + str(self.roll))
-			print("pitch:" + str(self.pitch))
-			print("yaw_velocity: " + str(self.yaw_velocity))
-			print("z_velocity: " + str(self.z_velocity))
+			#print("key press")
+			#print("roll:" + str(self.roll))
+			#print("pitch:" + str(self.pitch))
+			#print("yaw_velocity: " + str(self.yaw_velocity))
+			#print("z_velocity: " + str(self.z_velocity))
 			controller.setCommand(self.roll, self.pitch, self.yaw_velocity, self.z_velocity)
 
 
@@ -97,11 +97,11 @@ class KeyboardController(DroneVideoDisplay):
 				self.z_velocity -= -2
 
 			# finally we set the command to be sent. The controller handles sending this at regular intervals
-			print("key release")
-			print("roll:" + str(self.roll))
-			print("pitch:" + str(self.pitch))
-			print("yaw_velocity: " + str(self.yaw_velocity))
-			print("z_velocity: " + str(self.z_velocity))
+			#print("key release")
+			#print("roll:" + str(self.roll))
+			#print("pitch:" + str(self.pitch))
+			#print("yaw_velocity: " + str(self.yaw_velocity))
+			#print("z_velocity: " + str(self.z_velocity))
 			controller.setCommand(self.roll, self.pitch, self.yaw_velocity, self.z_velocity)
 
 

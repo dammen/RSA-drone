@@ -1,7 +1,6 @@
 import sherlock_holmes as holmes
 import cv2
 import argparse
-from image_transport import subscriber
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--image', help='look at an image')
@@ -21,12 +20,12 @@ INTERVAL = 10
 
 while True:
     # capture a frame from the video
-#    if args.video:
- #       ret, sherlock.image = file.read()
-  #      if not ret:
-   #         print('Video complete')
-    #        break
-    #elif args.image:
+    if args.video:
+        ret, sherlock.image = file.read()
+        if not ret:
+            print('Video complete')
+            break
+    elif args.image:
         sherlock.image = file
     
     counter += 1

@@ -32,15 +32,9 @@ class KeyboardController(DroneVideoDisplay):
 		self.yaw_velocity = 0 
 		self.z_velocity = 0
 
-# We add a keyboard handler to the DroneVideoDisplay to react to keypresses
 	def keyPressEvent(self, event):
-		print("hey")
 		key = event.key()
-		print(key)
-		# If we have constructed the drone controller and the key is not generated from an auto-repeating key
 		if controller is not None and not event.isAutoRepeat():
-			# Handle the important cases first!
-			print(key)
 			if key == KeyMapping.Emergency:
 				controller.reset()
 			elif key == KeyMapping.Takeoff:
@@ -50,7 +44,6 @@ class KeyboardController(DroneVideoDisplay):
 			elif key == KeyMapping.GoAuto:
 				controller.goAutonome()
 			else:
-				# Now we handle moving, notice that this section is the opposite (+=) of the keyrelease section
 				if key == KeyMapping.YawLeft:
 					self.yaw_velocity += 2
 				elif key == KeyMapping.YawRight:
@@ -71,7 +64,6 @@ class KeyboardController(DroneVideoDisplay):
 				elif key == KeyMapping.DecreaseAltitude:
 					self.z_velocity += -2
 
-			# finally we set the command to be sent. The controller handles sending this at regular intervals
 			print("key press")
 			print("roll:" + str(self.roll))
 			print("pitch:" + str(self.pitch))
@@ -82,11 +74,8 @@ class KeyboardController(DroneVideoDisplay):
 
 	def keyReleaseEvent(self,event):
 		key = event.key()
-
-		# If we have constructed the drone controller and the key is not generated from an auto-repeating key
 		if controller is not None and not event.isAutoRepeat():
-			# Note that we don't handle the release of emergency/takeoff/landing keys here, there is no need.
-			# Now we handle moving, notice that this section is the opposite (-=) of the keypress section
+			
 			if key == KeyMapping.YawLeft:
 				self.yaw_velocity -= 2
 			elif key == KeyMapping.YawRight:

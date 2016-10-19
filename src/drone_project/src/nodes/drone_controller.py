@@ -85,31 +85,37 @@ class DroneController:
 		print(self.beaconPointY)
 
 		if self.beaconPointX < 0 or self.beaconPointY < 0:
+			print("Lost track of beacon... Landing now")
 			self.LandingPublisher.publish(Empty())
 
 		else:
 			x = self.beaconPointX
 			y = self.beaconPointY
-			if x > 20:
-				self.command.linear.x = 1
-			elif x < -20 :
-				self.command.linear.x = -1
+			if x < 300:
+				self.command.linear.x = 3
+			elif x > 340 :
+				self.command.linear.x = -3
 			else: 
 				self.command.linear.x = 0 
 
-			if y > 20:
-				self.command.linear.y = 1
-			if y < -20:
-				self.command.linear.y = -1
+			if y < 160:
+				self.command.linear.y = 3
+			if y > 200 :
+				self.command.linear.y = -3
 			else:
 				self.command.linear.y = 0
 			
 			if self.beaconAngle > 10 and self.beaconAngle < 180:
-				self.command.angular.z = 1
+				self.command.angular.z = 3
 			elif self.beaconAngle > 180 and self.beaconAngle < 				350:
-				self.command.angular.z = -1
+				self.command.angular.z = -3
 			else: 
 				self.command.angular.z = 0
+		print(self.command.linear.x)
+		print(self.command.linear.y)
+		print(self.command.angular.z)
+		if self.state == 3 or self.state == 7 or self.state == 4:
+			self.CommandPublisher.publish(self.command)
 
 
 
