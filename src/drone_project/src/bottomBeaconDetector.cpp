@@ -173,7 +173,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     Canny(blackFilterRange, blackFilterRange, 50, 200);
     HoughLinesP(blackFilterRange, linesP, 1, CV_PI/180, 30, 30, 5);
     
-    if (!linesP.empty()) {
+   if (!linesP.empty()) {
         Vec4i max_l;
         bool vecSet = false;
         double max_dist = 50;
@@ -230,14 +230,16 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         int diffX, diffY;
         Point p1 (max_l[0], max_l[1]);
         Point p2 (max_l[2], max_l[3]);
-        /*
+        
         p1.x -= circles[0][0];
         p2.x -= circles[0][0];
         p1.y -= circles[0][1];
+        p1.y *= -1;
         p2.y -= circles[0][1];
+        p2.y *= -1;
         ROS_INFO("%d, %d", p1.x, p1.y);
         ROS_INFO("%d, %d", p2.x, p2.y);
-        */
+        
         /*int set = 0;
         if (max_l[3] > max_l[1]) {
             set= 1;
@@ -256,13 +258,29 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         diffX = p2.x - p1.x;
         float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
 
+        if ( angle > 0 && p1.x < 0 && p1.y > 0) {
+            ROS_INFO("QUAD 2");
+            angle = 180 - angle;
+        }
+        else if (angle > 0 && p1.x > 0 && p1.y < 0) {
+            ROS_INFO("QUAD 4");
+            angle = 360 - angle;
+        }
+        else if ( angle < 0 && p1.x < 0 && p1.y < 0) {
+            ROS_INFO("QUAD 3");
+            angle = 180 - angle;
+        }
+        else if ( angle < 0 && p1.x > 0 && p1.y > 0) {
+            ROS_INFO("QUAD 1");
+            angle *= -1;
+        }
         //ROS_INFO("P1 (%d,%d) P2(%d,%d), SET: %d", max_l[0], max_l[1], max_l[2], max_l[3], set);
-        //ROS_INFO("DIFFY: %d, DIFFX: %d, ANGLE: %f", diffY, diffX, angle);
         
         ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
-        msg.angle = angle; // offset
+        msg.angle = angle; 
         
     }
+
 
     // Display filtered Images
     /*
