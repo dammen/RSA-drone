@@ -33,6 +33,7 @@
     <depend>std_msgs</depend>
     <depend>sensor_msgs</depend>
     <depend>geometry_msgs</depend>
+    <depend>ardrone_autonomy</depend>
     <depend>image_transport</depend>
     <!--depend>crosbot_msgs</depend-->
     <!--depend>crosbot</depend-->
@@ -42,6 +43,7 @@
     <!-- Add back if necessary -->
     <!--depend>crosbot_explore</depend-->
     <depend>cv_bridge</depend>
+    <depend>rospy</depend>
     <!--depend>crosbot_graphslam</depend-->
     
     <!-- RViz Plugins -->

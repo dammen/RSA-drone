@@ -8,6 +8,7 @@
 
 #include <bottomBeaconDetector.hpp>
 
+
 #define LOG_START    "BottomBeaconDetector_node ::"
 
 namespace drone {

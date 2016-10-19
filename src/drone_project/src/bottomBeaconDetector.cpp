@@ -104,7 +104,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat blueFilterRange;
     cv::Mat blackFilterRange;
     drone::beaconGeometry msg;
-    
+
     cv::medianBlur(bgr_image, bgr_image, 3);
 
 	// Convert input image to HSV   

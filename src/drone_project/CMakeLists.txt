@@ -129,10 +129,12 @@ target_link_libraries(drone_rviz_library
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
+ install(PROGRAMS
+	src/nodes/drone_controller.py
+	src/nodes/autonom_controller.py
 #   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
 #install(DIRECTORY include/${PROJECT_NAME}/
