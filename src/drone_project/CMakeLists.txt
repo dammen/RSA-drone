@@ -132,6 +132,7 @@ target_link_libraries(drone_rviz_library
  install(PROGRAMS
 	src/nodes/drone_controller.py
 	src/nodes/autonom_controller.py
+	src/pattern_detection_node.py
 #   scripts/my_python_script
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

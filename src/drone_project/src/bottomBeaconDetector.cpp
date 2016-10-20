@@ -104,13 +104,13 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat blueFilterRange;
     cv::Mat blackFilterRange;
     drone::beaconGeometry msg;
-
+    
     cv::medianBlur(bgr_image, bgr_image, 3);
 
 	// Convert input image to HSV   
 	cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
 	
-	cv::inRange(hsv_image, cv::Scalar(0, 65, 100), cv::Scalar(180, 255, 255), blackFilterRange);
+	cv::inRange(hsv_image, cv::Scalar(59, 68, 80), cv::Scalar(180, 255, 150), blackFilterRange);    // Initially used as a beacon test
 	cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
 	
 	// Find appropriate threshold in testing
@@ -147,8 +147,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         // set mask for lines
         mask = Mat::zeros(hsv_image.size(), hsv_image.type());
-        Point topLeft (circles[0][0] - 110, circles[0][1] - 110);
-        Point bottomRight (circles [0][0] + 110, circles[0][1] + 110);
+        Point topLeft (circles[0][0] - circles[0][2] * 1.1, circles[0][1] - circles[0][2]*1.1);
+        Point bottomRight (circles [0][0] + circles[0][2] * 1.1, circles[0][1] + circles[0][2] * 1.1);
         
         if (topLeft.x < 0) topLeft.x = 0;
         if (topLeft.y < 0) topLeft.y = 0;
@@ -158,23 +158,31 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         cv::rectangle(mask, topLeft, bottomRight, Scalar(255, 255, 255), -1, 8, 0);
         
         hsv_image.copyTo(blackFilterRange, mask);
+    } else {
+	    msg.canSeeBeacon = false;
+	    msg.positionX = -1;
+	    msg.positionY = -1;
+	    msg.angle = -1;
+	    beaconPub.publish(msg);
+        imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
+        return;
     }
     
 	//cv::inRange(helperMask, cv::Scalar(101, 30, 100), cv::Scalar(180, 45, 160), blackFilterRange);
-	cv::inRange(blackFilterRange, cv::Scalar(0, 50, 25), cv::Scalar(180, 255, 125), blackFilterRange);
+	cv::inRange(blackFilterRange, cv::Scalar(0, 49, 20), cv::Scalar(180, 255, 150), blackFilterRange);
     Canny(blackFilterRange, blackFilterRange, 50, 200);
-    HoughLinesP(blackFilterRange, linesP, 1, CV_PI/180, 30, 20, 5);
+    HoughLinesP(blackFilterRange, linesP, 1, CV_PI/180, 30, 30, 5);
     
-    if (!linesP.empty()) {
+   if (!linesP.empty()) {
         Vec4i max_l;
         bool vecSet = false;
         double max_dist = 50;
-        // Get first line under 100 pixels, avoiding large lines found in environment
+        // Get first line over 50 pixels, avoiding large lines found in environment
         for( size_t i = 0; i < linesP.size(); i++ )
         {
             Vec4i l = linesP[i];
             double theta1,theta2, hyp, result;
-
+            // x & y differences not theta
             theta1 = (l[3]-l[1]);
             theta2 = (l[2]-l[0]);
             hyp = hypot(theta1,theta2);
@@ -189,7 +197,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         if (!vecSet) {
             max_dist = 40;
-            // Get first line under 100 pixels, avoiding large lines found in environment
+            // Get first line over 40 pixels, avoiding large lines found in environment
             for( size_t i = 0; i < linesP.size(); i++ )
             {
                 Vec4i l = linesP[i];
@@ -208,8 +216,9 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
             }
         }
         if (!vecSet) max_l = linesP[0];
+        
         /*
-        Draw all matching lines
+        //Draw all matching lines
         for( size_t i = 0; i < linesP.size(); i++ )
         {
           Vec4i l = linesP[i];
@@ -218,10 +227,64 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         */
         line( bgr_image, Point(max_l[0], max_l[1]), Point(max_l[2], max_l[3]), Scalar(255,0,0), 3, CV_AA);
         
-        float angle = atan2(max_l[1] - max_l[3], max_l[0] - max_l[2]);   
-        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle + 90, (int)linesP.size());
-        msg.angle = angle + 90; // offset
+        int diffX, diffY;
+        Point p1 (max_l[0], max_l[1]);
+        Point p2 (max_l[2], max_l[3]);
+        
+        p1.x -= circles[0][0];
+        p2.x -= circles[0][0];
+        p1.y -= circles[0][1];
+        p1.y *= -1;
+        p2.y -= circles[0][1];
+        p2.y *= -1;
+        ROS_INFO("%d, %d", p1.x, p1.y);
+        ROS_INFO("%d, %d", p2.x, p2.y);
+        
+        /*int set = 0;
+        if (max_l[3] > max_l[1]) {
+            set= 1;
+            diffY = max_l[3] - max_l[1];
+            diffX = max_l[2] - max_l[0];
+        }*/
+        /*
+        else {
+            set = 2;
+            diffY = max_l[1] - max_l[3];
+            diffX = max_l[0] - max_l[2];
+        }*/
+        // REALLY INCORRECT BUT ITLL WORK
+        
+        diffY = p2.y - p1.y;
+        diffX = p2.x - p1.x;
+        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
+
+        if ( angle > 0 && p1.x < 0 && p1.y > 0) {
+            ROS_INFO("QUAD 2");
+            angle = 180 - angle;
+        }
+        else if (angle > 0 && p1.x > 0 && p1.y < 0) {
+            ROS_INFO("QUAD 4");
+            angle = 360 - angle;
+        }
+        else if ( angle < 0 && p1.x < 0 && p1.y < 0) {
+            ROS_INFO("QUAD 3");
+            angle = 180 - angle;
+        }
+        else if ( angle < 0 && p1.x > 0 && p1.y > 0) {
+            ROS_INFO("QUAD 1");
+            angle *= -1;
+            angle += 360;
+        }
+        //ROS_INFO("P1 (%d,%d) P2(%d,%d), SET: %d", max_l[0], max_l[1], max_l[2], max_l[3], set);
+        
+        angle -= 90; // off set
+  
+  		//angle +=180;      
+        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
+        msg.angle = angle; 
+        
     }
+
 
     // Display filtered Images
     /*
@@ -241,14 +304,17 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     createTrackbar("v", "Blue Filter", 0, 255, trackBarblue);
     createTrackbar("h1", "Blue Filter", 0, 179,trackBarblue);
     createTrackbar("s1", "Blue Filter", 0, 255, trackBarblue);
-    createTrackbar("v1", "Blue Filter", 0, 255, trackBarblue);
+    createTrackbar("v1", "Blue Filter", 0, 255, trackBarblue);  
     */
-    
+
     beaconPub.publish(msg);
     imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
 }
 
 } // namespace drone
+
+
+
 
 
 

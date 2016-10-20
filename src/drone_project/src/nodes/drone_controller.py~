@@ -26,6 +26,7 @@ class DroneController:
 	def __init__(self):
 		# unknown state to begin with
 		self.state = 0
+		self.beaconLostFrames = 0
 		self.beaconPointX = 0
 		self.beaconPointY = 0
 		self.beaconAngle = 0
@@ -77,7 +78,6 @@ class DroneController:
 		self.beaconPointX = geometryData.positionX
 		self.beaconPointY = geometryData.positionY
 		self.beaconAngle = geometryData.angle
-		
 
 	def goAutonome(self):
 		print("AUTONOME")
@@ -85,30 +85,36 @@ class DroneController:
 		print(self.beaconPointY)
 
 		if self.beaconPointX < 0 or self.beaconPointY < 0:
-			print("Lost track of beacon... Landing now")
-			self.LandingPublisher.publish(Empty())
-
+			self.beaconLostFrames+= 1
+			print("lost beacon for ", str(self.beaconLostFrames))
+			if self.beaconLostFrames >= 10:
+				print("Lost track of beacon... Landing now")
+				self.LandingPublisher.publish(Empty())
+				
 		else:
+			self.beaconLostFrames = 0
 			x = self.beaconPointX
 			y = self.beaconPointY
 			if x < 300:
-				self.command.linear.x = 3
+				self.command.linear.x = -1
 			elif x > 340 :
-				self.command.linear.x = -3
+				self.command.linear.x = 1
 			else: 
 				self.command.linear.x = 0 
 
-			if y < 160:
-				self.command.linear.y = 3
-			if y > 200 :
-				self.command.linear.y = -3
+			if y < 220:
+				self.command.linear.y = -1
+			elif y > 260 :
+				self.command.linear.y = 1
 			else:
 				self.command.linear.y = 0
 			
-			if self.beaconAngle > 10 and self.beaconAngle < 180:
-				self.command.angular.z = 3
-			elif self.beaconAngle > 180 and self.beaconAngle < 				350:
-				self.command.angular.z = -3
+			if self.beaconAngle > 5 and self.beaconAngle < 180:
+				self.command.angular.z = -1
+			elif self.beaconAngle > 180 and self.beaconAngle < 355:
+				self.command.angular.z = -1
+			elif self.beaconAngle < 0:
+			    self.command.angular.z = -1
 			else: 
 				self.command.angular.z = 0
 		print(self.command.linear.x)

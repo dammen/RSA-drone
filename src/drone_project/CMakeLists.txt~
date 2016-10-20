@@ -119,12 +119,7 @@ target_link_libraries(drone_rviz_library
   ${QT_LIBRARIES}
   drone_library
 )
-target_link_libraries(drone_autonomController
-  ${CATKIN_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${QT_LIBRARIES}
-  drone_library
-)
+
 #############
 ## Install ##
 #############
@@ -137,6 +132,7 @@ target_link_libraries(drone_autonomController
  install(PROGRAMS
 	src/nodes/drone_controller.py
 	src/nodes/autonom_controller.py
+	src/pattern_detection.py
 #   scripts/my_python_script
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
