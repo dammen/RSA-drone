@@ -105,6 +105,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat blackFilterRange;
     drone::beaconGeometry msg;
     
+	ROS_INFO("X: %d, Y: %d", bgr_image.cols, bgr_image.rows);
+
     cv::medianBlur(bgr_image, bgr_image, 3);
 
 	// Convert input image to HSV   
@@ -147,8 +149,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         // set mask for lines
         mask = Mat::zeros(hsv_image.size(), hsv_image.type());
-        Point topLeft (circles[0][0] - circles[0][2] * 1.1, circles[0][1] - circles[0][2]*1.1);
-        Point bottomRight (circles [0][0] + circles[0][2] * 1.1, circles[0][1] + circles[0][2] * 1.1);
+        Point topLeft (circles[0][0] - circles[0][2] * 2, circles[0][1] - circles[0][2]*2);
+        Point bottomRight (circles [0][0] + circles[0][2] * 2, circles[0][1] + circles[0][2] * 2);
         
         if (topLeft.x < 0) topLeft.x = 0;
         if (topLeft.y < 0) topLeft.y = 0;

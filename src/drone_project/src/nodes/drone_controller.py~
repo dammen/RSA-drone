@@ -30,6 +30,8 @@ class DroneController:
 		self.beaconPointX = 0
 		self.beaconPointY = 0
 		self.beaconAngle = 0
+		self.memory = []
+		self.count = 0
 
 		# subscribe to the drone's current state
 		self.NavDataSubscriber = rospy.Subscriber('/ardrone/navdata', Navdata, self.updateState)
@@ -77,51 +79,102 @@ class DroneController:
 	def geometryUpdate(self, geometryData):
 		self.beaconPointX = geometryData.positionX
 		self.beaconPointY = geometryData.positionY
-		self.beaconAngle = geometryData.angle
+		self.beaconAngle = geometryData.angle 
+		if (self.beaconAngle < 0) :
+			self.beaconAngle = 180 - self.beaconAngle
 
 	def goAutonome(self):
-		print("AUTONOME")
+		print("--------------AUTONOME-----------------")
 		print(self.beaconPointX)
 		print(self.beaconPointY)
+		
 
 		if self.beaconPointX < 0 or self.beaconPointY < 0:
-			self.beaconLostFrames+= 1
-			print("lost beacon for ", str(self.beaconLostFrames))
-			if self.beaconLostFrames >= 10:
+			self.count += 1
+	
+		else:
+			self.memory.append([self.beaconPointX, self.beaconPointY, self.beaconAngle])	
+			self.count = 0
+			if len(self.memory) > 30 :
+				self.memory.pop(0)
+		
+
+		if self.beaconPointX < 0 or self.beaconPointY < 0 :
+			if self.count >= 30:
 				print("Lost track of beacon... Landing now")
 				self.LandingPublisher.publish(Empty())
-				
-		else:
-			self.beaconLostFrames = 0
-			x = self.beaconPointX
-			y = self.beaconPointY
-			if x < 300:
-				self.command.linear.x = -1
-			elif x > 340 :
-				self.command.linear.x = 1
-			else: 
-				self.command.linear.x = 0 
-
-			if y < 220:
-				self.command.linear.y = -1
-			elif y > 260 :
-				self.command.linear.y = 1
 			else:
-				self.command.linear.y = 0
-			
-			if self.beaconAngle > 5 and self.beaconAngle < 180:
-				self.command.angular.z = -1
-			elif self.beaconAngle > 180 and self.beaconAngle < 355:
-				self.command.angular.z = -1
-			elif self.beaconAngle < 0:
-			    self.command.angular.z = -1
-			else: 
-				self.command.angular.z = 0
+				print("getting average for the ", self.count, " time")
+				x = 0
+				y = 0
+				angle = 0
+				for i in range(len(self.memory)):
+					x += self.memory[i][0]
+					y += self.memory[i][1]
+					angle += self.memory[i][2]
+				averageX = x/len(self.memory)
+				averageY = y/len(self.memory)
+				averageAngle = angle/len(self.memory)
+				self.beaconPointX = averageX
+				self.beaconPointY = averageY
+				self.beaconAngle = averageAngle
+				print("Average calculated ")
+				print("AverageX = ", averageX) 
+				print("AverageY = ", averageY) 
+				print("AverageAngle = ", averageAngle) 
+				
+
+		
+		self.beaconLostFrames = 0
+		x = self.beaconPointX
+		y = self.beaconPointY
+		
+		x2 = (320.0 - x)
+		y2 = (180.0 - y)
+
+		if x < 120:
+			self.command.linear.x = -1
+		elif x > 520 :
+			self.command.linear.x = 1
+		elif (x2 >= 20 and x2 <= 200) or (x2 >= -200 and x2 <= -20) :
+			print("x2", x2)
+			self.command.linear.x = -x2/200.0
+		else: 
+			self.command.linear.x = 0 
+
+		if y < 80:
+			self.command.linear.y = -1
+		elif y > 280 :
+			self.command.linear.y = 1
+		elif (y2 >= 20 and y2 <= 100) or (y2 >= -100 and y2 <= -20) :
+			#print("y2", y2)
+			self.command.linear.y = -y2/100.0
+		else:
+			self.command.linear.y = 0
+		
+		if self.beaconAngle > 5 and self.beaconAngle < 180:
+			self.command.angular.z = 1
+		elif self.beaconAngle > 180 and self.beaconAngle < 355:
+			self.command.angular.z = -1
+		elif self.beaconAngle < 0:
+			self.command.angular.z = -1
+		else: 
+			self.command.angular.z = 0
+
+		self.command.angular.z = 0
+		self.command.angular.y = 0
+
+		print("commands being sent are: ")
 		print(self.command.linear.x)
 		print(self.command.linear.y)
 		print(self.command.angular.z)
 		if self.state == 3 or self.state == 7 or self.state == 4:
 			self.CommandPublisher.publish(self.command)
 
+
+	#		self.beaconLostFrames+= 1
+	#		print("lost beacon for ", str(self.beaconLostFrames))
+	#		if self.beaconLostFrames >= 10:
+	#			print("Lost track of beacon... Landing now")
 
 

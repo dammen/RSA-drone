@@ -3067,8 +3067,8 @@ clean: drone_project/CMakeFiles/drone_gencpp.dir/clean
 
 # All Build rule for target.
 drone_project/CMakeFiles/drone_generate_messages.dir/all: drone_project/CMakeFiles/drone_generate_messages_cpp.dir/all
-drone_project/CMakeFiles/drone_generate_messages.dir/all: drone_project/CMakeFiles/drone_generate_messages_py.dir/all
 drone_project/CMakeFiles/drone_generate_messages.dir/all: drone_project/CMakeFiles/drone_generate_messages_lisp.dir/all
+drone_project/CMakeFiles/drone_generate_messages.dir/all: drone_project/CMakeFiles/drone_generate_messages_py.dir/all
 	$(MAKE) -f drone_project/CMakeFiles/drone_generate_messages.dir/build.make drone_project/CMakeFiles/drone_generate_messages.dir/depend
 	$(MAKE) -f drone_project/CMakeFiles/drone_generate_messages.dir/build.make drone_project/CMakeFiles/drone_generate_messages.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/rsa/rsa_drone/build/CMakeFiles 
