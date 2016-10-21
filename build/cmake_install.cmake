@@ -118,6 +118,7 @@ IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   INCLUDE("/home/rsa/rsa_drone/build/gtest/cmake_install.cmake")
   INCLUDE("/home/rsa/rsa_drone/build/ardrone_autonomy/cmake_install.cmake")
+  INCLUDE("/home/rsa/rsa_drone/build/drone_project/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 

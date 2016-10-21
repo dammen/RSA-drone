@@ -35,6 +35,7 @@ b516280f3813e9e05b8fe8f191385001 /home/rsa/rsa_drone/devel/include/ardrone_auton
 3c647e2fda5f49e28e9e6c15f388e4e3 /home/rsa/rsa_drone/devel/include/ardrone_autonomy/navdata_zimmu_3000.h
 41eee50742bd107ff724df2ad34a392d /home/rsa/rsa_drone/devel/include/ardrone_autonomy/vector21.h
 8ab32263f968dfb2901b3399b5c79fee /home/rsa/rsa_drone/devel/include/ardrone_autonomy/vector31.h
+39703d38850007329920baaaf59d2a42 /home/rsa/rsa_drone/devel/include/drone/beaconGeometry.h
 6df7434e94511a585b8e683287c73afb /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/msg/_Navdata.py
 ff8fbb282b5ca9f97d04b0975653ca28 /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/msg/__init__.py
 b3dcdcea43426bb0ce14b757ac55ecc7 /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/msg/_matrix33.py
@@ -73,6 +74,8 @@ d693f9a9d3c793f35220322d2d59b10c /home/rsa/rsa_drone/devel/lib/python2.7/dist-pa
 8f8de56f3de3cca43055e6179b8c3970 /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/srv/_LedAnim.py
 f1c08cc46fb7678d05c4bce285240d92 /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/srv/_RecordEnable.py
 fc4d6a8cf7c0f2f7233928c9f7c59f75 /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/ardrone_autonomy/srv/__init__.py
+98a2c575f8fac3d400510cb16bf6836f /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/drone/msg/__init__.py
+e67741641e4c38ec69b68fd5a403c93b /home/rsa/rsa_drone/devel/lib/python2.7/dist-packages/drone/msg/_beaconGeometry.py
 5480f93e1b3e17bf973229aea4b1aafd /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/msg/Navdata.lisp
 fea503c5c50146a9e29f5271facfe505 /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/msg/matrix33.lisp
 017ebb6bec2a32a77117c6af44e5f459 /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/msg/navdata_adc_data_frame.lisp
@@ -109,6 +112,7 @@ a8f42de7911166497e9b1c4e984fabd4 /home/rsa/rsa_drone/devel/share/common-lisp/ros
 fa9a401cf8e5a24988b2ed19f01e1285 /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/srv/FlightAnim.lisp
 8a3a002fc22520b921a89ff2d3e26b01 /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/srv/LedAnim.lisp
 14ecfb7f89b7def0517a7b87b82d35c3 /home/rsa/rsa_drone/devel/share/common-lisp/ros/ardrone_autonomy/srv/RecordEnable.lisp
+4af749f8fa41560e893ad4343bc2c117 /home/rsa/rsa_drone/devel/share/common-lisp/ros/drone/msg/beaconGeometry.lisp
 0943aeecaae427bca056512c1ab966bb /home/rsa/rsa_drone/devel/src/ardronelib-stamp/ardronelib-build
 f7f804d8196f6c43edc9a78231b0ed1c /home/rsa/rsa_drone/devel/src/ardronelib-stamp/ardronelib-configure
 fb80691c7bfb41f1f770f6b74eb70ed2 /home/rsa/rsa_drone/devel/src/ardronelib-stamp/ardronelib-download
@@ -198,3 +202,21 @@ d804a933544af7ca1ca920897e3f2b33 ardrone_autonomy/CMakeFiles/ardronelib-complete
 61e1749cfd4939f9d2f717ca7b302a13 ardrone_autonomy/CMakeFiles/tf_generate_messages_cpp
 61e1749cfd4939f9d2f717ca7b302a13 ardrone_autonomy/CMakeFiles/tf_generate_messages_lisp
 61e1749cfd4939f9d2f717ca7b302a13 ardrone_autonomy/CMakeFiles/tf_generate_messages_py
+806a0cf1f00b5f628f85901fd26a05dd drone_project/CMakeFiles/_drone_generate_messages_check_deps_beaconGeometry
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_gencpp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_generate_messages
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_generate_messages_cpp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_generate_messages_lisp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_generate_messages_py
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_genlisp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/drone_genpy
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/map_msgs_generate_messages_cpp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/map_msgs_generate_messages_lisp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/map_msgs_generate_messages_py
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/nav_msgs_generate_messages_cpp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/nav_msgs_generate_messages_lisp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/nav_msgs_generate_messages_py
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/visualization_msgs_generate_messages_cpp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/visualization_msgs_generate_messages_lisp
+2cab2b2766a47689b04bbbd8a2b3c3f2 drone_project/CMakeFiles/visualization_msgs_generate_messages_py
+535ca55ed3eb7f9b5d73e69ef272f254 drone_project/include/rviz/moc_controlPanel.cxx

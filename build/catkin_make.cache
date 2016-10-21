@@ -1,2 +1,2 @@
-ardrone_autonomy
+ardrone_autonomy:drone_project
 -DCATKIN_DEVEL_PREFIX=/home/rsa/rsa_drone/devel -DCMAKE_INSTALL_PREFIX=/home/rsa/rsa_drone/install -G Unix Makefiles
