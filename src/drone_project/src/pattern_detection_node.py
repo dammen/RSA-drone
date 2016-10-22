@@ -8,6 +8,12 @@ import pattern as p
 from cv_bridge import CvBridge, CvBridgeError
 from drone.msg import beaconGeometry
 
+# The pattern rotation:
+# e.g. if the rotation is 40 degrees then that means the drone
+# should move 40 degrees counter clockwise to correctly orient the pattern.
+# if the rotation is -20 degrees then that means that the drone
+# should move -20 degrees counter clockwise (aka 20 degrees clockwise)
+
 NODE_NAME = 'pattern_detector'
 
 class PatternDetector(object):
