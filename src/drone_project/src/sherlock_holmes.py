@@ -171,6 +171,7 @@ class SherlockHolmes(object):
 
             # check if it is flipped by simply checking the y values
             if c3.y > c1.y:
+                angle = (angle + math.pi) % (2 * math.pi)
                 for c in circles:
                     c.x, c.y = -c.x, -c.y
 

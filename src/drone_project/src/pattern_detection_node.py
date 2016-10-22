@@ -13,10 +13,8 @@ NODE_NAME = 'pattern_detector'
 class PatternDetector(object):
     def __init__(self):
         self.image_subscriber = rospy.Subscriber('/ardrone/bottom/image_raw', Image, self.image_callback)
-        self.patternPublisher = rospy.Publisher("/ardrone/beaconGeometry", beaconGeometry)
+        self.pattern_publisher = rospy.Publisher("/ardrone/beaconGeometry", beaconGeometry)
         self.pattern_id_publisher = rospy.Publisher('pattern_id', Int8, queue_size=10)
-        self.pattern_pos_publisher = rospy.Publisher('pattern_pos', Point, queue_size=10)
-        self.pattern_rot_publisher = rospy.Publisher('pattern_rot', Int8, queue_size=10)
         self.bridge = CvBridge()
         self.sherlock = holmes.SherlockHolmes()
 
@@ -27,10 +25,11 @@ class PatternDetector(object):
             print(e)
         self.sherlock.image = cv_image
         pattern = self.sherlock.detect_pattern()
-        self.pattenPublisher.publish(canSeeBeacon=True, positionX=pattern.x, positionY=pattern.y, angle=pattern.rotation)
-        self.pattern_id_publisher.publish(data=pattern.ID)
-        self.pattern_pos_publisher.publish(x=pattern.x, y=pattern.y)
-        self.pattern_rot_publisher.publish(data=int(pattern.rotation))
+        if pattern:
+            self.pattern_publisher.publish(canSeeBeacon=True, positionX=pattern.x, positionY=pattern.y, angle=pattern.rotation)
+            self.pattern_id_publisher.publish(data=pattern.ID)
+        else:
+            self.pattern_publisher.publish(canSeeBeacon=False, positionX=0, positionY=0, angle=0)
 
 def main():
     rospy.init_node(NODE_NAME, anonymous=True)
