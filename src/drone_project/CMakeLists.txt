@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
                     message_runtime std_msgs sensor_msgs geometry_msgs
                     image_transport
                     message_generation
+		    ardrone_autonomy
                     #crosbot_msgs
                     #crosbot
                     ## Uncomment these if required
@@ -80,13 +81,13 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC})
 add_library(drone_library
     src/controlPanelTest.cpp
     src/bottomBeaconDetector.cpp
+    src/altitudeControl.cpp
     #src/other.cpp
 )
 
 ## GUI Specific Libraries
 add_library(drone_rviz_library
     src/rviz/controlPanel.cpp
-    
     ${QT_MOC_HPP}
 )
 
@@ -96,6 +97,9 @@ add_executable(drone_controlPanelTest
 )
 add_executable(drone_bottomBeaconDetector
     src/nodes/bottomBeaconDetector_node.cpp
+)
+add_executable(drone_altitudeControl
+    src/nodes/altitudeControl_node.cpp
 )
 
 ## Specify libraries to link a library or executable target against
@@ -109,6 +113,11 @@ target_link_libraries(drone_controlPanelTest
   drone_library
 )
 target_link_libraries(drone_bottomBeaconDetector
+  ${CATKIN_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  drone_library
+)
+target_link_libraries(drone_altitudeControl
   ${CATKIN_LIBRARIES}
   ${OpenCV_LIBRARIES}
   drone_library
@@ -132,7 +141,7 @@ target_link_libraries(drone_rviz_library
  install(PROGRAMS
 	src/nodes/drone_controller.py
 	src/nodes/autonom_controller.py
-	src/pattern_detection_node.py
+	#src/pattern_detection_node.py
 #   scripts/my_python_script
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
