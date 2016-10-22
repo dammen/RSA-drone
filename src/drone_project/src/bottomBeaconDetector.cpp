@@ -11,6 +11,8 @@
 #include <vector>
 #include <drone/beaconGeometry.h>
 
+#define MASK_THRESHOLD 1.1
+
 
 namespace drone {
 using namespace cv;
@@ -105,29 +107,28 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::Mat blackFilterRange;
     drone::beaconGeometry msg;
     
-	ROS_INFO("X: %d, Y: %d", bgr_image.cols, bgr_image.rows);
+    ROS_INFO("X: %d, Y: %d", bgr_image.cols, bgr_image.rows);
 
     cv::medianBlur(bgr_image, bgr_image, 3);
 
-	// Convert input image to HSV   
-	cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
+    // Convert input image to HSV   
+    cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
+
+    cv::inRange(hsv_image, cv::Scalar(59, 68, 80), cv::Scalar(180, 255, 150), blackFilterRange);    // Initially used as a beacon test 
+   cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
 	
-	cv::inRange(hsv_image, cv::Scalar(59, 68, 80), cv::Scalar(180, 255, 150), blackFilterRange);    // Initially used as a beacon test
-	cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
-	
-	// Find appropriate threshold in testing
-	if (cv::countNonZero(blackFilterRange) < 500) {
-	    msg.canSeeBeacon = false;
-	    msg.positionX = -1;
-	    msg.positionY = -1;
-	    msg.angle = -1;
-	    beaconPub.publish(msg);
-        imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
+   // Find appropriate threshold in testing
+   if (cv::countNonZero(blackFilterRange) < 500) {
+      msg.canSeeBeacon = false;
+      msg.positionX = -1;
+      msg.positionY = -1;
+      msg.angle = -1;
+      beaconPub.publish(msg);
+      imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
         return;
     }
     
     ROS_INFO("Beacon Detected");
-    
     msg.canSeeBeacon = true;
     
     std::vector<Vec3f> circles;
@@ -135,7 +136,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 
     GaussianBlur(blueFilterRange, blueFilterRange, Size(9,9), 2, 2);
     HoughCircles(blueFilterRange, circles, CV_HOUGH_GRADIENT, 2, blueFilterRange.rows/4, 100, 50);
-    
+    // this code assumes the first circle found is the beacon.
+    // is this safe? Hough Circles above assumes circles are rows/4 pixels apart
     if (!circles.empty()) {
         ROS_INFO("Beacon Location: X:%d Y:%d, Radius: %d", (int)circles[0][0], (int)circles[0][1], (int)circles[0][2]);
         
@@ -149,8 +151,9 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         // set mask for lines
         mask = Mat::zeros(hsv_image.size(), hsv_image.type());
-        Point topLeft (circles[0][0] - circles[0][2] * 2, circles[0][1] - circles[0][2]*2);
-        Point bottomRight (circles [0][0] + circles[0][2] * 2, circles[0][1] + circles[0][2] * 2);
+
+        Point topLeft (circles[0][0] - circles[0][2] * MASK_THRESHOLD, circles[0][1] - circles[0][2]*MASK_THRESHOLD);
+        Point bottomRight (circles [0][0] + circles[0][2] * MASK_THRESHOLD, circles[0][1] + circles[0][2] * MASK_THRESHOLD);
         
         if (topLeft.x < 0) topLeft.x = 0;
         if (topLeft.y < 0) topLeft.y = 0;
@@ -161,6 +164,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         hsv_image.copyTo(blackFilterRange, mask);
     } else {
+            //no beacon found by Hough Circles
 	    msg.canSeeBeacon = false;
 	    msg.positionX = -1;
 	    msg.positionY = -1;
@@ -233,6 +237,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         Point p1 (max_l[0], max_l[1]);
         Point p2 (max_l[2], max_l[3]);
         
+        // ?? What is this for??
         p1.x -= circles[0][0];
         p2.x -= circles[0][0];
         p1.y -= circles[0][1];
@@ -258,8 +263,13 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         
         diffY = p2.y - p1.y;
         diffX = p2.x - p1.x;
-        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
 
+        //atan2 returns a value between -pi/2 and pi/2
+        // convert to degrees then add 180 to get range from 0-360
+        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
+        angle += 180;
+        
+        /*
         if ( angle > 0 && p1.x < 0 && p1.y > 0) {
             ROS_INFO("QUAD 2");
             angle = 180 - angle;
@@ -276,9 +286,11 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
             ROS_INFO("QUAD 1");
             angle *= -1;
             angle += 360;
-        }
+        }*/
+
         //ROS_INFO("P1 (%d,%d) P2(%d,%d), SET: %d", max_l[0], max_l[1], max_l[2], max_l[3], set);
         
+	// THIS IS NOT RIGHT. Need to find whether circle center is above ot below line.
         angle -= 90; // off set
   
   		//angle +=180;      
