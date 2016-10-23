@@ -32,6 +32,7 @@ private:
     ros::Publisher beaconPub;
     //void trackBarblue (int, void*);
     //void trackBarblack(int, void*);
+    int distance2(int, int, int, int);
 
 public:
     BottomBeaconDetector();

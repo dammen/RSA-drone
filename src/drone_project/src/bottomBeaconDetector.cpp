@@ -1,5 +1,5 @@
 /*
- * mapRelay.cpp
+ * bottomBeaconDetector.cpp
  *
  *  Created on: 16/09/2016
  *      Author: Ben Faul (z3422539)
@@ -11,7 +11,7 @@
 #include <vector>
 #include <drone/beaconGeometry.h>
 
-#define MASK_THRESHOLD 1.1
+#define MASK_THRESHOLD 1.6
 
 
 namespace drone {
@@ -115,7 +115,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
     cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV);
 
     cv::inRange(hsv_image, cv::Scalar(59, 68, 80), cv::Scalar(180, 255, 150), blackFilterRange);    // Initially used as a beacon test 
-   cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
+    cv::inRange(hsv_image, cv::Scalar(100, 130, 57), cv::Scalar(115, 255, 255), blueFilterRange);
 	
    // Find appropriate threshold in testing
    if (cv::countNonZero(blackFilterRange) < 500) {
@@ -178,8 +178,61 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 	cv::inRange(blackFilterRange, cv::Scalar(0, 49, 20), cv::Scalar(180, 255, 150), blackFilterRange);
     Canny(blackFilterRange, blackFilterRange, 50, 200);
     HoughLinesP(blackFilterRange, linesP, 1, CV_PI/180, 30, 30, 5);
+   
+   
     
    if (!linesP.empty()) {
+
+        int circleRadius = (int)circles[0][2];
+        int radiusSqrd = circleRadius*circleRadius;
+        int circleX = (int)circles[0][0];
+        int circleY = (int)circles[0][1];
+        Vec4i currentLine = (-1, -1, -1, -1);
+        Vec4i beaconEdge = (-1, -1, -1, -1);
+
+        for( size_t i = 0; i < linesP.size(); i++){
+
+            currentLine = linesP[i];
+            
+            // distance2 calculates the distance^2 between two points - dont want to to sqrt when image processing!
+            int diff1 = distance2(currentLine[0], circleX, currentLine[1], circleY)-radiusSqrd;
+            if(diff1 < 0) diff1 *= -1;
+
+            int diff2 = distance2(currentLine[2], circleX, currentLine[3], circleY)-radiusSqrd;
+            if(diff2 < 0) diff2 *= -1;
+
+            if( diff1 < 5 && diff2 < 5){
+                // both ends points of the line are within 5 pixels of being on the beacon edge.
+                beaconEdge = currentLine;
+                break;
+            }
+        }
+
+        // now currentLine = the flat edge of the beacon if found
+        if (beaconEdge[0] == -1 && beaconEdge[1] == -1 && beaconEdge[2] == -1 && beaconEdge[3] == -1){
+            ROS_INFO("*** No beacon edge found ***\n"); // but atleast we can still get the beacon center
+            msg.angle = -1;
+	        beaconPub.publish(msg);
+            imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
+            return;
+        }
+        
+        // get midpoint of beacon edge
+        int midpointX = (currentLine[0] + currentLine[2])/2;
+        int midpointY = (currentLine[1] + currentLine[3])/2;
+
+        int diffY = midpointY - circleY;
+        int diffX = midpointX - circleX;
+
+        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
+        angle += 180;
+
+        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
+        msg.angle = angle; 
+        line( bgr_image, Point(currentLine[0], currentLine[1]), Point(currentLine[2], currentLine[3]), Scalar(0,0,255), 3, CV_AA);
+    }
+
+/*
         Vec4i max_l;
         bool vecSet = false;
         double max_dist = 50;
@@ -222,7 +275,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
             }
         }
         if (!vecSet) max_l = linesP[0];
-        
+*/        
         /*
         //Draw all matching lines
         for( size_t i = 0; i < linesP.size(); i++ )
@@ -231,6 +284,8 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
           line( bgr_image, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
         }
         */
+
+/*
         line( bgr_image, Point(max_l[0], max_l[1]), Point(max_l[2], max_l[3]), Scalar(255,0,0), 3, CV_AA);
         
         int diffX, diffY;
@@ -246,7 +301,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         p2.y *= -1;
         ROS_INFO("%d, %d", p1.x, p1.y);
         ROS_INFO("%d, %d", p2.x, p2.y);
-        
+*/        
         /*int set = 0;
         if (max_l[3] > max_l[1]) {
             set= 1;
@@ -261,13 +316,13 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         }*/
         // REALLY INCORRECT BUT ITLL WORK
         
-        diffY = p2.y - p1.y;
-        diffX = p2.x - p1.x;
+//        diffY = p2.y - p1.y;
+ //       diffX = p2.x - p1.x;
 
         //atan2 returns a value between -pi/2 and pi/2
         // convert to degrees then add 180 to get range from 0-360
-        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
-        angle += 180;
+//        float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
+//        angle += 180;
         
         /*
         if ( angle > 0 && p1.x < 0 && p1.y > 0) {
@@ -291,13 +346,13 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         //ROS_INFO("P1 (%d,%d) P2(%d,%d), SET: %d", max_l[0], max_l[1], max_l[2], max_l[3], set);
         
 	// THIS IS NOT RIGHT. Need to find whether circle center is above ot below line.
-        angle -= 90; // off set
+//        angle -= 90; // off set
   
   		//angle +=180;      
-        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
-        msg.angle = angle; 
+//        ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
+//        msg.angle = angle; 
         
-    }
+ //   }
 
 
     // Display filtered Images
@@ -323,6 +378,10 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
 
     beaconPub.publish(msg);
     imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
+}
+
+int BottomBeaconDetector::distance2(int x1, int x2, int y1, int y2){
+    return ((x1-x2)*(x1-x2)) + ((y1-y2)*(y1-y2));
 }
 
 } // namespace drone
