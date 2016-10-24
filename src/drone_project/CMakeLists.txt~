@@ -97,6 +97,11 @@ add_executable(drone_controlPanelTest
 add_executable(drone_bottomBeaconDetector
     src/nodes/bottomBeaconDetector_node.cpp
 )
+add_executable(drone_altitudeControl
+    src/nodes/altitudeControl_node.cpp
+)
+
+
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(drone_library
@@ -132,7 +137,7 @@ target_link_libraries(drone_rviz_library
  install(PROGRAMS
 	src/nodes/drone_controller.py
 	src/nodes/autonom_controller.py
-	src/pattern_detection.py
+	src/pattern_detection_node.py
 #   scripts/my_python_script
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

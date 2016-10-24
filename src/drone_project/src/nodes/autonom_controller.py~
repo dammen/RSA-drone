@@ -42,9 +42,10 @@ class KeyboardController(DroneVideoDisplay):
 			elif key == KeyMapping.Land:
 				controller.land()
 			elif key == KeyMapping.GoAuto:
-				controller.goAutonome()
-			elif key == KeyMapping.GoManuell:
-				controller.goManuell()
+				controller.setAuto()
+			elif key == KeyMapping.goManuell:
+				controller.quitAuto()
+
 			else:
 				if key == KeyMapping.YawLeft:
 					self.yaw_velocity += 2
