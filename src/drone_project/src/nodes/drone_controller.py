@@ -2,7 +2,7 @@
 
 import rospy, roslib
 
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Vector3
 from std_msgs.msg import Empty
 from ardrone_autonomy.msg import NavData
 from drone.msg import beaconGeometry
@@ -27,6 +27,7 @@ class DroneController:
 	def __init__(self):
 		# unknown state to begin with
 		self.state = 0
+		self.canSee = False
 
 		# whether we are controlling or not
 		self.autopilot = False
@@ -34,6 +35,7 @@ class DroneController:
 		# subscribe to the drone's current state
 		self.NavDataSubscriber = rospy.Subscriber('/ardrone/navdata', NavData, self.updateState)
 		self.BeaconSubscriber = rospy.Subscriber("/ardrone/beaconGeometry", beaconGeometry, self.geometryUpdate)
+		self.MovementSubscriber = rospy.Subscriber('/ardrone/movements', Vector3, self.setMovements)
 
 		# publishers for landing, taking off, resetting and sending Twist commands to move the drone
 		self.LandingPublisher = rospy.Publisher('/ardrone/land', Empty)
@@ -45,7 +47,6 @@ class DroneController:
 		self.command = Twist()
 		# send command every {INTERVAL} milliseconds
 		self.commandTimer = rospy.Timer(rospy.Duration(INTERVAL / 1000.0), self.sendCommand)
-		# self.decisionTimer = rospy.Timer(rospy.Duration(INTERVAL / 1000.0), self.makeDecision)
 
 		# safely land if we are shutting down
 		rospy.on_shutdown(self.land)
@@ -58,6 +59,16 @@ class DroneController:
 		self.command.angular.z = yawVel
 		self.command.angular.x = angularX
 		self.command.angular.y = angularY
+
+	def setMovements(self, data):
+		if (self.autopilot):
+			self.setCommand(data.x, data.y, 0, data.z)
+
+	def startAuto(self):
+		self.autopilot = True
+
+	def stopAuto(self):
+		self.autopilot = False
 
 	def sendCommand(self):
 		if self.state == self.FLYING1 or self.state == self.FLYING2 or self.state == self.HOVERING:
@@ -82,6 +93,7 @@ class DroneController:
 		self.setCommand()
 
 	def geometryUpdate(self, geometryData):
+		self.canSee = geometryData.canSeeBeacon
 		self.beaconPointX = geometryData.positionX
 		self.beaconPointY = geometryData.positionY
 		self.beaconAngle = self.normalise(geometryData.angle)

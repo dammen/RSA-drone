@@ -3,7 +3,7 @@ import sherlock_holmes as holmes
 import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int8
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, Vector3
 import drone_movements
 import pattern as p
 from drone_controller import DroneController
@@ -23,6 +23,7 @@ class PatternDetector(object):
         self.image_subscriber = rospy.Subscriber('/ardrone/bottom/image_raw', Image, self.image_callback)
         self.pattern_publisher = rospy.Publisher("/ardrone/beaconGeometry", beaconGeometry)
         self.pattern_id_publisher = rospy.Publisher('pattern_id', Int8, queue_size=10)
+        self.movement_publisher = rospy.Publisher('/ardrone/movements', Vector3)
         self.bridge = CvBridge()
         self.controller = DroneController()
         self.sherlock = holmes.SherlockHolmes()
@@ -38,8 +39,11 @@ class PatternDetector(object):
         if pattern:
             self.pattern_publisher.publish(canSeeBeacon=True, positionX=pattern.x, positionY=pattern.y, angle=pattern.rotation)
             self.pattern_id_publisher.publish(data=pattern.ID)
+            movements = drone_movements.DroneMovement(pattern, self.sherlock.image.shape[1], self.sherlock.image.shape[0])
+            vec = movements.make_decision()
+            self.movement_publisher.publish(x=vec[0], y=vec[1], z=vec[2])
         else:
-            self.pattern_publisher.publish(canSeeBeacon=False, positionX=0, positionY=0, angle=0)
+            self.pattern_publisher.publish(canSeeBeacon=False, positionX=-1, positionY=-1, angle=0)
 
 def main():
     rospy.init_node(NODE_NAME, anonymous=True)
