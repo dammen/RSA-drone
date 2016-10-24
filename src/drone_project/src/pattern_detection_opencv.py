@@ -2,6 +2,7 @@
 import sherlock_holmes as holmes
 import cv2
 import argparse
+import drone_movements as drone
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--image', help='look at an image')
@@ -34,6 +35,9 @@ while True:
         pattern = sherlock.detect_pattern()
         if pattern:
             print('Pattern {0} detected at ({1}, {2}) with a rotation of {3} degrees'.format(pattern.ID, pattern.x, pattern.y, pattern.rotation))
+            d = drone.DroneMovement(pattern, sherlock.image.shape[1], sherlock.image.shape[0])
+            decision = d.make_decision()
+            print('Should move drone: x{0} y{1} z{2}'.format(decision[0], decision[1], decision[2]))
         else:
             print('Failed to detect a pattern')
 

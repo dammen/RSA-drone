@@ -4,7 +4,9 @@ import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int8
 from geometry_msgs.msg import Point
+import drone_movements
 import pattern as p
+from drone_controller import DroneController
 from cv_bridge import CvBridge, CvBridgeError
 from drone.msg import beaconGeometry
 
@@ -22,6 +24,7 @@ class PatternDetector(object):
         self.pattern_publisher = rospy.Publisher("/ardrone/beaconGeometry", beaconGeometry)
         self.pattern_id_publisher = rospy.Publisher('pattern_id', Int8, queue_size=10)
         self.bridge = CvBridge()
+        self.controller = DroneController()
         self.sherlock = holmes.SherlockHolmes()
 
     def image_callback(self, data):
@@ -31,6 +34,7 @@ class PatternDetector(object):
             print(e)
         self.sherlock.image = cv_image
         pattern = self.sherlock.detect_pattern()
+
         if pattern:
             self.pattern_publisher.publish(canSeeBeacon=True, positionX=pattern.x, positionY=pattern.y, angle=pattern.rotation)
             self.pattern_id_publisher.publish(data=pattern.ID)
