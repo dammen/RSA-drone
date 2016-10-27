@@ -151,9 +151,6 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         int radius = cvRound(circles[0][2]);
         circle(bgr_image, center, radius, Scalar(0,255,0), -3, 8, 0);
 
-	    beaconPub.publish(msg);
-    imagePublisher.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_image).toImageMsg());
-	return;
         
         // set mask for lines
         mask = Mat::zeros(hsv_image.size(), hsv_image.type());
@@ -231,7 +228,7 @@ void BottomBeaconDetector::analyseImage(cv_bridge::CvImagePtr cv_ptr) {
         int diffX = midpointX - circleX;
 
         float angle = atan2(diffY, diffX) * 180.0/CV_PI; 
-        angle += 180;
+        //angle += 180;
 
         ROS_INFO("Beacon Angle: %f, Total Lines Detected: %d", angle, (int)linesP.size());
         msg.angle = angle; 
